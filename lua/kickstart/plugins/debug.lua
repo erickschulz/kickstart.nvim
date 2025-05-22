@@ -81,6 +81,9 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
+    -- do not add breakpoints on uncaught exceptions by default
+    dap.defaults.fallback.exception_breakpoints = {}
+
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
@@ -95,6 +98,7 @@ return {
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+        'codelldb',
       },
     }
 
