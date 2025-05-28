@@ -470,7 +470,7 @@ require('lazy').setup({
           winblend = 10,
           previewer = false,
           layout_config = {
-            width = 0.5, -- Make the telescope window wider (90% of screen)
+            width = 0.9, -- Make the telescope window wider (90% of screen)
           },
         })
       end, { desc = '[/] Fuzzily search in current buffer' })
