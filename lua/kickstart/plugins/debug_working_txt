@@ -1,3 +1,4 @@
+-- debug.lua - Simplified version
 return {
   'mfussenegger/nvim-dap',
   dependencies = {
@@ -11,29 +12,57 @@ return {
       '<F5>',
       function()
         local dap = require 'dap'
-        local configs = dap.configurations.cpp
+        local current_ft = vim.bo.filetype
+        print("F5 pressed. Current filetype: '" .. current_ft .. "'")
 
-        local filtered_configs = {}
-        for _, config in ipairs(configs) do
-          if config.name and string.find(config.name, 'PLECS') then
-            table.insert(filtered_configs, config)
+        -- Try to find configurations for current filetype
+        local configs = dap.configurations[current_ft]
+
+        -- If no configs for current filetype, try common C++ filetypes
+        if not configs or #configs == 0 then
+          local fallback_types = { 'cpp', 'c', 'cc', 'cxx' }
+          for _, ft in ipairs(fallback_types) do
+            if dap.configurations[ft] and #dap.configurations[ft] > 0 then
+              configs = dap.configurations[ft]
+              print('Using configurations from filetype: ' .. ft)
+              break
+            end
           end
         end
 
-        -- Force selection dialog to appear with only filtered_configs
-        vim.ui.select(filtered_configs, {
-          prompt = 'Select configuration: ',
-          format_item = function(config)
-            return config.name
-          end,
-        }, function(config)
-          if config then
-            dap.run(config)
+        print 'Available configurations:'
+        if configs and #configs > 0 then
+          for i, config in ipairs(configs) do
+            print('  ' .. i .. ': ' .. config.name)
           end
-        end)
+
+          -- Force the selection dialog to appear
+          vim.ui.select(configs, {
+            prompt = 'Select configuration: ',
+            format_item = function(config)
+              return config.name
+            end,
+          }, function(config)
+            if config then
+              dap.run(config)
+            end
+          end)
+        else
+          print 'No debug configurations available'
+          print 'All available filetypes with configs:'
+          for ft, ft_configs in pairs(dap.configurations) do
+            print('  ' .. ft .. ': ' .. #ft_configs .. ' configs')
+          end
+        end
       end,
-      -- cannot be used as 'Debug: Continue'
-      desc = 'Debug: Start',
+      desc = 'Debug: Start/Continue',
+    },
+    {
+      '<F6>',
+      function()
+        require('dap').terminate()
+      end,
+      desc = 'Debug: Terminate',
     },
     {
       '<F1>',
@@ -57,27 +86,6 @@ return {
       desc = 'Debug: Step Out',
     },
     {
-      '<F4>',
-      function()
-        require('dap').continue()
-      end,
-      desc = 'Debug: Start/Continue',
-    },
-    {
-      '<F6>',
-      function()
-        require('dap').terminate()
-      end,
-      desc = 'Debug: Terminate',
-    },
-    {
-      '<F7>',
-      function()
-        require('dapui').toggle()
-      end,
-      desc = 'Debug: See last session result.',
-    },
-    {
       '<leader>b',
       function()
         require('dap').toggle_breakpoint()
@@ -91,6 +99,13 @@ return {
       end,
       desc = 'Debug: Set Breakpoint',
     },
+    {
+      '<F7>',
+      function()
+        require('dapui').toggle()
+      end,
+      desc = 'Debug: See last session result.',
+    },
   },
   config = function()
     local dap = require 'dap'
@@ -102,10 +117,7 @@ return {
       name = 'lldb',
     }
 
-    -- Set up Lua configurations
-    -- These configurations can be called with <F5>,
-    -- while <F4> will default to look for a launch.json when
-    -- it is not used as 'Debug: Continue'
+    -- Set up configurations - ONLY your custom one for now
     dap.configurations.cpp = {
       {
         name = 'Debug PLECS Standalone (Lua)',
@@ -128,9 +140,9 @@ return {
           'command script import ${env:HOME}/plecs/tools/lldb_formatters/plecs.py',
           'command script import ${env:HOME}/plecs/tools/lldb_formatters/LLDB_Eigen_Pretty_Printer.py',
         },
-        sourceMap = {
-          ['${config:QtBuiltDir}'] = '${config:QtDir}/debug/src',
-        },
+        -- sourceMap = {
+        --   ['${config:QtBuiltDir}'] = '${config:QtDir}/debug/src',
+        -- },
         env = {
           ASAN_OPTIONS = 'suppressions=${env:HOME}/plecs/tools/suppressions/asan.supp,detect_container_overflow=0',
           UBSAN_OPTIONS = 'suppressions=${env:HOME}/plecs/tools/suppressions/ubsan.supp',
@@ -138,6 +150,26 @@ return {
         },
       },
     }
+
+    -- Set up for multiple filetypes
+    dap.configurations.c = dap.configurations.cpp
+    dap.configurations.rust = dap.configurations.cpp
+    dap.configurations.h = dap.configurations.cpp
+    dap.configurations.hpp = dap.configurations.cpp
+    dap.configurations.cc = dap.configurations.cpp
+    dap.configurations.cxx = dap.configurations.cpp
+
+    -- Debug output
+    print 'Custom DAP configuration loaded for filetypes: cpp, c, rust, h, hpp, cc, cxx'
+    for i, config in ipairs(dap.configurations.cpp) do
+      print('  ' .. i .. ': ' .. config.name)
+    end
+
+    -- Also print all available configurations
+    print 'All DAP configurations:'
+    for ft, configs in pairs(dap.configurations) do
+      print('  ' .. ft .. ': ' .. #configs .. ' configs')
+    end
 
     local dapui = require 'dapui'
     dap.defaults.fallback.exception_breakpoints = {}
