@@ -121,14 +121,43 @@ end)
 -- Enable break indent
 vim.o.breakindent = true
 
+-- Default settings for TAB
 -- TAB looks like 4 spaces
-vim.o.tabstop = 3
+vim.o.tabstop = 4
 -- Pressing TAB insert spaces
 vim.o.expandtab = true
 -- Number of spaces inserted when pressing TAB
-vim.o.softtabstop = 3
+vim.o.softtabstop = 4
 -- Number of spaces inserted when indenting
-vim.o.shiftwidth = 3
+vim.o.shiftwidth = 4
+
+-- Adjust TAB settings for cpp and python
+-- Create an autocommand group for tab settings
+local tab_group = vim.api.nvim_create_augroup('TabSettings', { clear = true })
+
+-- C++ files: 3 spaces
+vim.api.nvim_create_autocmd('FileType', {
+  group = tab_group,
+  pattern = { 'cpp', 'c', 'h', 'hpp', 'cc', 'cxx' },
+  callback = function()
+    vim.bo.tabstop = 3
+    vim.bo.softtabstop = 3
+    vim.bo.shiftwidth = 3
+    vim.bo.expandtab = true
+  end,
+})
+
+-- Python files: 4 spaces (following PEP 8)
+vim.api.nvim_create_autocmd('FileType', {
+  group = tab_group,
+  pattern = 'python',
+  callback = function()
+    vim.bo.tabstop = 4
+    vim.bo.softtabstop = 4
+    vim.bo.shiftwidth = 4
+    vim.bo.expandtab = true
+  end,
+})
 
 -- Save undo history
 vim.o.undofile = true
@@ -1006,7 +1035,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
