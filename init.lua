@@ -131,6 +131,12 @@ vim.o.softtabstop = 4
 -- Number of spaces inserted when indenting
 vim.o.shiftwidth = 4
 
+vim.opt.fillchars = { diff = ' ' }
+
+-- Key mappings for CMake commands
+vim.keymap.set('n', '<F8>', '<cmd>CMakeGenerate<cr>', { silent = true })
+vim.keymap.set('n', '<F9>', '<cmd>CMakeBuild<cr>', { silent = true })
+
 -- Adjust TAB settings for cpp and python
 -- Create an autocommand group for tab settings
 local tab_group = vim.api.nvim_create_augroup('TabSettings', { clear = true })
@@ -293,7 +299,25 @@ require('lazy').setup({
   --
   -- Use `opts = {}` to automatically pass options to a plugin's `setup()` function, forcing the plugin to be loaded.
   --
-
+  -- {
+  --   'lewis6991/gitsigns.nvim',
+  --   opts = {
+  --     -- The 'signs' table is removed to use the defaults.
+  --     -- The default text for 'add' and 'change' is '│'.
+  --   },
+  -- },
+  {
+    'lewis6991/gitsigns.nvim',
+    opts = {
+      signs = {
+        add = { text = '' },
+        change = { text = '' },
+        delete = { text = '' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '' },
+      },
+    },
+  },
   -- Alternatively, use `config = function() ... end` for full control over the configuration.
   -- If you prefer to call `setup` explicitly, use:
   --    {
@@ -309,18 +333,18 @@ require('lazy').setup({
   -- options to `gitsigns.nvim`.
   --
   -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
-  },
+  -- { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  --   'lewis6991/gitsigns.nvim',
+  --   opts = {
+  --     signs = {
+  --       add = { text = '+' },
+  --       change = { text = '~' },
+  --       delete = { text = '_' },
+  --       topdelete = { text = '‾' },
+  --       changedelete = { text = '~' },
+  --     },
+  --   },
+  -- },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
@@ -382,9 +406,11 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
-        { '<leader>s', group = '[S]earch' },
-        { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>s', group = 'Search' },
+        { '<leader>t', group = 'Toggle' },
+        { '<leader>h', group = '[H]unk (git)', mode = { 'n', 'v' } },
+        { '<leader>d', group = '[D]iffview (git)' },
+        { '<leader>l', group = '[L]azygit (git)' },
       },
     },
   },
@@ -1043,7 +1069,7 @@ require('lazy').setup({
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
